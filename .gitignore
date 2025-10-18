@@ -1,0 +1,7 @@
+
+node_modules/
+
+# Quasar / Vue build outputs
+dist/
+.quasar/
+.env
