@@ -1,23 +1,65 @@
 <template>
   <q-layout view="lHh Lpr lFf">
+    <!-- Header -->
     <q-header elevated>
       <q-toolbar>
-        <q-btn flat dense round icon="menu" aria-label="Menu" @click="toggleLeftDrawer" />
+        <q-btn
+          flat
+          dense
+          round
+          icon="menu"
+          aria-label="Menu"
+          @click="toggleLeftDrawer"
+        />
 
-        <q-toolbar-title> Quasar App </q-toolbar-title>
-
-        <div>Quasar v{{ $q.version }}</div>
+        <q-toolbar-title>
+          Mini Transaction Ledger
+        </q-toolbar-title>
       </q-toolbar>
     </q-header>
 
+    <!-- Sidebar / Drawer -->
     <q-drawer v-model="leftDrawerOpen" show-if-above bordered>
       <q-list>
-        <q-item-label header> Essential Links </q-item-label>
+        <q-item-label header> Navigation </q-item-label>
 
-        <EssentialLink v-for="link in linksList" :key="link.title" v-bind="link" />
+        <!-- Accounts Link -->
+        <q-item
+          clickable
+          v-ripple
+          :to="{ path: '/accounts' }"
+          exact
+          active-class="bg-primary text-white"
+        >
+          <q-item-section avatar>
+            <q-icon name="account_balance" />
+          </q-item-section>
+          <q-item-section>
+            <q-item-label>Accounts</q-item-label>
+            <q-item-label caption>Manage bank accounts</q-item-label>
+          </q-item-section>
+        </q-item>
+
+        <!-- Transactions Link -->
+        <q-item
+          clickable
+          v-ripple
+          :to="{ path: '/transactions' }"
+          exact
+          active-class="bg-primary text-white"
+        >
+          <q-item-section avatar>
+            <q-icon name="swap_horiz" />
+          </q-item-section>
+          <q-item-section>
+            <q-item-label>Transactions</q-item-label>
+            <q-item-label caption>Cash in, out & transfers</q-item-label>
+          </q-item-section>
+        </q-item>
       </q-list>
     </q-drawer>
 
+    <!-- Page Container -->
     <q-page-container>
       <router-view />
     </q-page-container>
@@ -25,57 +67,20 @@
 </template>
 
 <script setup>
-import { ref } from 'vue'
-import EssentialLink from 'components/EssentialLink.vue'
+import { ref } from "vue";
 
-const linksList = [
-  {
-    title: 'Docs',
-    caption: 'quasar.dev',
-    icon: 'school',
-    link: 'https://quasar.dev',
-  },
-  {
-    title: 'Github',
-    caption: 'github.com/quasarframework',
-    icon: 'code',
-    link: 'https://github.com/quasarframework',
-  },
-  {
-    title: 'Discord Chat Channel',
-    caption: 'chat.quasar.dev',
-    icon: 'chat',
-    link: 'https://chat.quasar.dev',
-  },
-  {
-    title: 'Forum',
-    caption: 'forum.quasar.dev',
-    icon: 'record_voice_over',
-    link: 'https://forum.quasar.dev',
-  },
-  {
-    title: 'Twitter',
-    caption: '@quasarframework',
-    icon: 'rss_feed',
-    link: 'https://twitter.quasar.dev',
-  },
-  {
-    title: 'Facebook',
-    caption: '@QuasarFramework',
-    icon: 'public',
-    link: 'https://facebook.quasar.dev',
-  },
-  {
-    title: 'Quasar Awesome',
-    caption: 'Community Quasar projects',
-    icon: 'favorite',
-    link: 'https://awesome.quasar.dev',
-  },
-]
-
-const leftDrawerOpen = ref(false)
+const leftDrawerOpen = ref(false);
 
 function toggleLeftDrawer() {
-  leftDrawerOpen.value = !leftDrawerOpen.value
+  leftDrawerOpen.value = !leftDrawerOpen.value;
 }
 </script>
+
+<style>
+/* Optional: make active links more visible */
+.q-item.bg-primary {
+  border-radius: 8px;
+}
+</style>
+
+

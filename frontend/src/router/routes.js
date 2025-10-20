@@ -2,11 +2,12 @@ const routes = [
   {
     path: '/',
     component: () => import('layouts/MainLayout.vue'),
-    children: [{ path: '', component: () => import('pages/IndexPage.vue') }],
+    children: [
+      { path: '', redirect: '/accounts' }, // default
+      { path: 'accounts', component: () => import('pages/AccountsPage.vue') },
+      { path: 'transactions', component: () => import('pages/TransactionsPage.vue') }
+    ],
   },
-
-  // Always leave this as last one,
-  // but you can also remove it
   {
     path: '/:catchAll(.*)*',
     component: () => import('pages/ErrorNotFound.vue'),
@@ -14,3 +15,4 @@ const routes = [
 ]
 
 export default routes
+
