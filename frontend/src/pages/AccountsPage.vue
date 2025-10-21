@@ -1,96 +1,109 @@
 <template>
   <q-page class="q-pa-md">
-    <q-card>
-      <q-card-section>
-        <div class="text-h6">Accounts</div>
-      </q-card-section>
 
-      <q-card-section>
-        <div class="row q-col-gutter-md items-center">
-          <div class="col">
-            <q-input v-model="newName" label="New Account Name" dense outlined />
-          </div>
-          <div class="col-auto">
-            <q-btn
-              label="Create"
-              color="primary"
-              @click="addAccount"
-              :disable="!newName"
-            />
-          </div>
-        </div>
-      </q-card-section>
+    <!-- Create Account Button -->
+    <div class="row q-my-xl">
+      <q-btn label="Create New Account" color="primary" @click="openDialog = true"/>
+    </div>
 
-      <q-card-section>
-        <q-table
-          title="All Accounts"
-          :rows="accounts"
-          :columns="columns"
-          row-key="id"
-          flat
-          bordered
-        >
-          <template v-slot:body-cell-actions="props">
-            <q-td :props="props">
-              <q-btn
-                flat
-                color="primary"
-                icon="visibility"
-                size="sm"
-                @click="viewDetails(props.row)"
-              />
-            </q-td>
-          </template>
-        </q-table>
-      </q-card-section>
-    </q-card>
+    <!-- Accounts Table -->
+    <AccountsTable
+      :rows="accountStore.accounts"
+      :columns="columns"
+      @show-transactions="openTransactionHistory"
+    />
 
-    <!-- Account Details Dialog -->
-    <q-dialog v-model="dialog">
-      <q-card style="min-width: 300px">
+    <!-- Create Account Dialog -->
+    <q-dialog v-model="openDialog">
+      <q-card style="min-width:600px">
         <q-card-section>
-          <div class="text-h6">Account Details</div>
+          <div class="text-h6">Create New Account</div>
         </q-card-section>
+
         <q-card-section>
-          <p><b>ID:</b> {{ selected?.id }}</p>
-          <p><b>Name:</b> {{ selected?.name }}</p>
-          <p><b>Balance:</b> {{ selected?.balance }}</p>
+          <q-input v-model="newName" label="Account Holder Name" outlined dense />
+          <q-input v-model.number="newBalance" label="Initial Balance" type="number" outlined dense class="q-mt-sm"/>
         </q-card-section>
+
         <q-card-actions align="right">
-          <q-btn flat label="Close" v-close-popup />
+          <q-btn flat label="Cancel" v-close-popup />
+          <q-btn flat color="primary" label="Create" @click="createAccount" />
         </q-card-actions>
       </q-card>
     </q-dialog>
+
+    <!-- Transaction History Dialog -->
+    <q-dialog v-model="transactionDialog">
+      <q-card style="min-width:800px">
+        <q-card-section>
+          <div class="text-h6">Transaction History for Account #{{ selectedAccountId }}</div>
+        </q-card-section>
+
+        <q-card-section>
+          <TransactionHistory :account-id="selectedAccountId" />
+        </q-card-section>
+
+        <q-card-actions align="right">
+          <q-btn flat label="Close" v-close-popup @click="transactionDialog = false"/>
+        </q-card-actions>
+      </q-card>
+    </q-dialog>
+
   </q-page>
 </template>
 
 <script setup>
-import { ref } from "vue";
-import { useAccountStore } from "src/stores/account-store";
+import { ref, onMounted } from 'vue'
+import { useAccountStore } from 'src/stores/account-store'
+import AccountsTable from 'src/components/AccountsTable.vue'
+//import TransactionHistory from 'src/components/TransactionHistory.vue'
 
-const store = useAccountStore();
+const accountStore = useAccountStore()
 
-const newName = ref("");
-const dialog = ref(false);
-const selected = ref(null);
+// Dialogs
+const openDialog = ref(false)
+const transactionDialog = ref(false)
+const selectedAccountId = ref(null)
 
+// Form fields
+const newName = ref('')
+const newBalance = ref(0)
+
+// Table columns
 const columns = [
-  { name: "id", label: "ID", field: "id", align: "left" },
-  { name: "name", label: "Name", field: "name", align: "left" },
-  { name: "balance", label: "Balance", field: "balance", align: "right" },
-  { name: "actions", label: "Actions", align: "center" }
-];
+  { name: 'account_id', label: 'ID', field: 'account_id' },
+  { name: 'name', label: 'Account Holder', field: 'name' },
+  { name: 'balance', label: 'Balance', field: 'balance', align: 'right' },
+  { name: 'created_at', label: 'Created At', field: 'created_at' },
+  { name: 'actions', label: 'Transaction History', align: 'center' }
+]
 
-function addAccount() {
-  store.createAccount(newName.value);
-  newName.value = "";
+// Create new account
+function createAccount() {
+  if (!newName.value.trim()) return
+
+  accountStore.createAccount({
+    name: newName.value,
+    balance: newBalance.value || 0
+  })
+
+  newName.value = ''
+  newBalance.value = 0
+  openDialog.value = false
 }
 
-function viewDetails(acc) {
-  selected.value = acc;
-  dialog.value = true;
+// Open Transaction History dialog
+function openTransactionHistory(accountId) {
+  selectedAccountId.value = accountId
+  transactionDialog.value = true
 }
 
-const accounts = store.accounts;
+// Fetch accounts on page load
+onMounted(() => {
+  accountStore.fetchAccounts()
+})
 </script>
+
+
+
 

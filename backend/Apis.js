@@ -28,7 +28,7 @@ router.post('/createAccount', async (req, res) => {
 
 router.get('/accounts', async (req, res) => {
     try {
-        const result = await pool.query('SELECT * FROM accounts ORDER BY account_id ASC');  
+        const result = await pool.query('SELECT * FROM accounts ORDER BY account_id DESC');  
         res.json(result.rows);
     } catch (err) {
         console.error('Error fetching accounts:', err);
@@ -49,12 +49,12 @@ router.post('/cashin', async (req, res) => {
             [amt, account_id]
         );
 
-        await pool.query(
-            'INSERT INTO transactions (to_account, amount, type, description) VALUES ($1, $2, $3, $4)',
+        const result= await pool.query(
+            'INSERT INTO transactions (to_account, amount, type, description) VALUES ($1, $2, $3, $4) RETURNING *',
             [account_id, amt, 'credit', description || 'Cash In']
         );
         await pool.query('COMMIT');
-        res.status(200).json({ message: 'Cash in successful' });
+        res.json(result.rows[0]);
     } catch (err) {
         await pool.query('ROLLBACK');
         console.error('Error during cash in:', err);
@@ -97,6 +97,15 @@ router.post('/cashout', async (req, res) => {
          } 
 });
 
+router.get('/allTransactions', async (req, res) => {
+    try {
+        const result = await pool.query('SELECT * FROM transactions ORDER BY txn_id DESC');
+        res.json(result.rows);
+    } catch (err) {
+        console.error('Error fetching transactions:', err);
+        res.status(500).json({ error: 'Internal server error' });
+    } 
+});  
 
 
 export default router;

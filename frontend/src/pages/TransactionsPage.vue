@@ -1,58 +1,67 @@
 <template>
   <q-page class="q-pa-md">
-    <q-card>
+
+    <q-card class="q-pa-md">
       <q-card-section>
-        <div class="text-h6">Transactions</div>
+        <div class="text-h6 text-center">💸 Transactions Portal</div>
       </q-card-section>
 
-      <q-card-section>
-        <div class="row q-col-gutter-md">
-          <div class="col">
-            <q-select
-              v-model="selectedAccount"
-              :options="accountOptions"
-              label="Select Account"
-              outlined
-              dense
-            />
-          </div>
-          <div class="col">
-            <q-input v-model.number="amount" label="Amount" type="number" outlined dense />
-          </div>
-          <div class="col-auto">
-            <q-btn label="Cash In" color="positive" @click="cashIn" />
-            <q-btn label="Cash Out" color="negative" @click="cashOut" class="q-ml-sm" />
-          </div>
+      <!-- Transaction Forms -->
+      <q-separator spaced />
+      <div class="row q-col-gutter-md">
+        <div class="col-12 col-md-4">
+          <CashIn />
         </div>
-      </q-card-section>
+        <div class="col-12 col-md-4">
+          <CashOut />
+        </div>
+        <div class="col-12 col-md-4">
+          <TransferAmount />
+        </div>
+      </div>
+
+      <q-separator spaced />
+
+      <!-- Transactions Table -->
+      <TransactionsTable />
     </q-card>
   </q-page>
 </template>
 
 <script setup>
-import { ref, computed } from "vue";
-import { useAccountStore } from "src/stores/account-store";
 
-const store = useAccountStore();
-const selectedAccount = ref(null);
-const amount = ref(0);
+import CashIn from "src/components/CashIn.vue";
+import CashOut from "src/components/CashOut.vue";
+import TransferAmount from "src/components/TransferAmount.vue";
+import TransactionsTable from "src/components/TransactionTable.vue";
 
-const accountOptions = computed(() =>
-  store.accounts.map(a => ({ label: `${a.name} (Bal: ${a.balance})`, value: a.id }))
-);
-
-function cashIn() {
-  if (selectedAccount.value && amount.value > 0) {
-    store.cashIn(selectedAccount.value, amount.value);
-    amount.value = 0;
-  }
-}
-
-function cashOut() {
-  if (selectedAccount.value && amount.value > 0) {
-    store.cashOut(selectedAccount.value, amount.value);
-    amount.value = 0;
-  }
-}
 </script>
+
+<style scoped>
+.text-h6 {
+  font-weight: 600;
+}
+.row {
+  margin-top: 1rem;
+}
+.q-card {
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  border-radius: 12px;
+}
+.q-page {
+  background-color: #fafafa;
+}
+</style>
+
+
+
+
+
+
+
+
+
+
+
+
 
