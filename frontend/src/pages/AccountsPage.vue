@@ -1,19 +1,20 @@
 <template>
   <q-page class="q-pa-md">
 
-    <!-- Create Account Button -->
-    <div class="row q-my-xl">
-      <q-btn label="Create New Account" color="primary" @click="openDialog = true"/>
+    <div class="row q-my-xl q-btn-gutter-md justify-center">
+      <q-btn label="Create New Account  +" color="primary"  @click="openDialog = true"/>
     </div>
 
-    <!-- Accounts Table -->
+    <div v-if="successMessage" class="text-positive text-subtitle1 q-mb-md text-center bg-green-1 text-green-7 q-pa-sm q-rounded">
+      {{ successMessage }}
+    </div>
+
+
     <AccountsTable
       :rows="accountStore.accounts"
       :columns="columns"
-      @show-transactions="openTransactionHistory"
     />
 
-    <!-- Create Account Dialog -->
     <q-dialog v-model="openDialog">
       <q-card style="min-width:600px">
         <q-card-section>
@@ -32,22 +33,6 @@
       </q-card>
     </q-dialog>
 
-    <!-- Transaction History Dialog -->
-    <q-dialog v-model="transactionDialog">
-      <q-card style="min-width:800px">
-        <q-card-section>
-          <div class="text-h6">Transaction History for Account #{{ selectedAccountId }}</div>
-        </q-card-section>
-
-        <q-card-section>
-          <TransactionHistory :account-id="selectedAccountId" />
-        </q-card-section>
-
-        <q-card-actions align="right">
-          <q-btn flat label="Close" v-close-popup @click="transactionDialog = false"/>
-        </q-card-actions>
-      </q-card>
-    </q-dialog>
 
   </q-page>
 </template>
@@ -56,53 +41,50 @@
 import { ref, onMounted } from 'vue'
 import { useAccountStore } from 'src/stores/account-store'
 import AccountsTable from 'src/components/AccountsTable.vue'
-//import TransactionHistory from 'src/components/TransactionHistory.vue'
+
 
 const accountStore = useAccountStore()
 
-// Dialogs
 const openDialog = ref(false)
-const transactionDialog = ref(false)
-const selectedAccountId = ref(null)
 
-// Form fields
+
 const newName = ref('')
 const newBalance = ref(0)
 
-// Table columns
+const successMessage = ref('')
+
 const columns = [
-  { name: 'account_id', label: 'ID', field: 'account_id' },
-  { name: 'name', label: 'Account Holder', field: 'name' },
-  { name: 'balance', label: 'Balance', field: 'balance', align: 'right' },
-  { name: 'created_at', label: 'Created At', field: 'created_at' },
-  { name: 'actions', label: 'Transaction History', align: 'center' }
+  { name: 'account_id', label: 'ID', field: 'account_id', align: 'center' },
+  { name: 'name', label: 'Account Holder', field: 'name', align: 'center' },
+  { name: 'balance', label: 'Balance', field: 'balance', align: 'center' },
+  { name: 'created_at', label: 'Created At', field: 'created_at', align: 'center' },
 ]
 
-// Create new account
-function createAccount() {
-  if (!newName.value.trim()) return
+async function createAccount() {
+  if (!newName.value.trim()) return 
+  if (isNaN(Number(newBalance.value)) || newBalance.value < 0) return
 
-  accountStore.createAccount({
+  const newAccount = await accountStore.createAccount({
     name: newName.value,
     balance: newBalance.value || 0
   })
+
+  if (newAccount) {
+    successMessage.value = `${newAccount.name}'s account successfully created.  The account number is ${newAccount.account_id}.`
+  }
+
+  await accountStore.fetchAccounts()
 
   newName.value = ''
   newBalance.value = 0
   openDialog.value = false
 }
 
-// Open Transaction History dialog
-function openTransactionHistory(accountId) {
-  selectedAccountId.value = accountId
-  transactionDialog.value = true
-}
-
-// Fetch accounts on page load
 onMounted(() => {
   accountStore.fetchAccounts()
 })
 </script>
+
 
 
 

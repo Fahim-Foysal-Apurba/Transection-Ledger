@@ -2,39 +2,40 @@
   <q-page class="q-pa-md">
 
     <q-card class="q-pa-md">
+
       <q-card-section>
-        <div class="text-h6 text-center">💸 Transactions Portal</div>
+        <div class="text-h6 text-center">Transactions Portal</div>
       </q-card-section>
 
-      <!-- Transaction Forms -->
       <q-separator spaced />
+
       <div class="row q-col-gutter-md">
+
         <div class="col-12 col-md-4">
-          <CashIn />
+          <TransactionPool type="cashin" />
         </div>
+
         <div class="col-12 col-md-4">
-          <CashOut />
+          <TransactionPool type="cashout" />
         </div>
+
         <div class="col-12 col-md-4">
-          <TransferAmount />
+          <TransactionPool type="transfer" />
         </div>
+
       </div>
 
       <q-separator spaced />
 
-      <!-- Transactions Table -->
       <TransactionsTable />
+
     </q-card>
   </q-page>
 </template>
 
 <script setup>
-
-import CashIn from "src/components/CashIn.vue";
-import CashOut from "src/components/CashOut.vue";
-import TransferAmount from "src/components/TransferAmount.vue";
+import TransactionPool from "src/components/TransactionPool.vue";
 import TransactionsTable from "src/components/TransactionTable.vue";
-
 </script>
 
 <style scoped>
@@ -48,10 +49,12 @@ import TransactionsTable from "src/components/TransactionTable.vue";
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
   border-radius: 12px;
 }
+
 .q-page {
-  background-color: #fafafa;
+  background-color: #ddf3fd;
 }
 </style>
+
 
 
 

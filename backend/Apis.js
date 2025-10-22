@@ -16,23 +16,20 @@ router.post('/createAccount', async (req, res) => {
       [name, bal]
     );
 
-    res.status(201).json(result.rows[0]);
+    res.json(result.rows[0]);
   } catch (err) {
     console.error('Error creating account:', err);
-    res.status(500).json({ error: 'Internal server error' });
   }
 });
 
 
 //get all accounts api
-
 router.get('/accounts', async (req, res) => {
     try {
         const result = await pool.query('SELECT * FROM accounts ORDER BY account_id DESC');  
         res.json(result.rows);
     } catch (err) {
         console.error('Error fetching accounts:', err);
-        res.status(500).json({ error: 'Internal server error' });
     }       
 });
 
@@ -55,10 +52,10 @@ router.post('/cashin', async (req, res) => {
         );
         await pool.query('COMMIT');
         res.json(result.rows[0]);
+
     } catch (err) {
         await pool.query('ROLLBACK');
         console.error('Error during cash in:', err);
-        res.status(500).json({ error: 'Internal server error', error: err.message });
     }
 });
 
@@ -70,40 +67,59 @@ router.post('/cashout', async (req, res) => {
 
         await pool.query('BEGIN');
         const amt = amount ? Number(amount) : 0.00;
+       
+        await pool.query("UPDATE accounts SET balance = balance - $1 WHERE account_id=$2", 
+        [amt, account_id]);
 
-        const acc = await pool.query("SELECT balance FROM accounts WHERE account_id=$1", [account_id]);
+        const txn = await pool.query(
+         "INSERT INTO transactions (from_account, amount, type, description) VALUES ($1,$2,$3,$4) RETURNING *",
+          [account_id, amt, 'debit', description || 'Cash Out']
+        );
 
-        if (acc.rows.length === 0) throw new Error("From account not found");
-
-        if (parseFloat(acc.rows[0].balance) < amount) {
-           throw new Error("Insufficient balance");
-           } else{
-
-                await pool.query("UPDATE accounts SET balance = balance - $1 WHERE account_id=$2", 
-                    [amt, account_id]);
-
-                const txn = await pool.query(
-                  "INSERT INTO transactions (from_account, amount, type, description) VALUES ($1,$2,$3,$4) RETURNING *",
-                  [account_id, amt, 'debit', description || 'Cash Out']
-                );
-
-                await pool.query("COMMIT");
-                res.json(txn.rows[0]);
-            }
+        await pool.query("COMMIT");
+        res.json(txn.rows[0]);
 
         }catch (err) {
                  await pool.query("ROLLBACK");
-                 res.status(400).json({ error: err.message })
          } 
 });
 
+
+// trabsfer amount api
+router.post('/transfer', async (req, res) => {
+    try {
+        const { from_account, to_account, amount, description } = req.body;
+
+        await pool.query('BEGIN');
+        const amt = amount ? Number(amount) : 0.00;
+
+        await pool.query("UPDATE accounts SET balance = balance - $1 WHERE account_id=$2", 
+            [amt, from_account]);
+        
+            await pool.query("UPDATE accounts SET balance = balance + $1 WHERE account_id=$2", 
+            [amt, to_account]);
+
+        const txn = await pool.query(
+          "INSERT INTO transactions (from_account, to_account, amount, type, description) VALUES ($1,$2,$3,$4,$5) RETURNING *",
+          [from_account, to_account, amt, 'transfer', description || 'Transfer Amount']
+        );
+
+        await pool.query("COMMIT");
+        res.json(txn.rows[0]);
+            
+
+        }catch (err) {
+                 await pool.query("ROLLBACK");
+         } 
+});
+
+//get all transactions api
 router.get('/allTransactions', async (req, res) => {
     try {
         const result = await pool.query('SELECT * FROM transactions ORDER BY txn_id DESC');
         res.json(result.rows);
     } catch (err) {
         console.error('Error fetching transactions:', err);
-        res.status(500).json({ error: 'Internal server error' });
     } 
 });  
 
