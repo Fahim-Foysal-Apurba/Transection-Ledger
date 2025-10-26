@@ -98,7 +98,11 @@ onMounted(async () => {
   else titleText.value = "Transaction";
 });
 
+
+
 const submit = async () => {
+  await accountStore.fetchAccounts()
+
   message.value = "";
 
   if (!account_Id.value) {

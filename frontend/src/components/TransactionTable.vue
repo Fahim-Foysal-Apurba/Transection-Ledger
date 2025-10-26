@@ -76,8 +76,6 @@ function formatTransaction(txn) {
 }
 watch(() => transactionStore.transactions.length, async (newLength) => {
     if (newLength > prevLength.value) {
-      console.log('New transaction added!')
-
      await transactionStore.fetchTransactions()
     }
     prevLength.value = newLength

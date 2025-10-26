@@ -49,7 +49,7 @@
 
         </q-item>
 
-        <!-- Transactions Link -->
+       
         <q-item
           clickable
           :to="{ path: '/transactions' }"
